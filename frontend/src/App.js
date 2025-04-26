@@ -9,6 +9,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import ViewBlogPage from './pages/ViewBlogPage';
 import CreateBlogPage from './pages/CreateBlogPage';
 import EditBlogPage from './pages/EditBlogPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
   return (
@@ -27,6 +28,9 @@ function App() {
         <Route path="/admin/view/:id" element={<ViewBlogPage />} />
         <Route path="/admin/create" element={<CreateBlogPage />} />
         <Route path="/admin/edit/:id" element={<EditBlogPage />} />
+
+        {/* 404 Route */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>
   );
