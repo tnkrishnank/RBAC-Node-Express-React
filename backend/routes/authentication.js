@@ -5,6 +5,7 @@ const User = require('../models/user');
 const Role = require('../models/role');
 const jwt = require('jsonwebtoken');
 const { sendVerificationEmail } = require('../utils/mailer');
+const { isValidPassword } = require('../utils/passwordValidator');
 
 // Method to generate JWT token
 const generateToken = (userId) => {
@@ -23,6 +24,9 @@ router.post('/register', async (req, res) => {
         const existingUser = await User.findOne({ $or: [{ username }, { email }] });
         if (existingUser) {
             return res.status(400).json({ message: 'Username or email already exists' });
+        }
+        if (!isValidPassword(password)) {
+            return res.status(400).json({ message: 'Password should contain atleast one uppercase, one lowercase, one number and one special characters and a minimum length of 8.' });
         }
         // Create email verification link
         const signupData = { username, password, name, email };

@@ -2,11 +2,15 @@ const express = require('express');
 const router = express.Router();
 const verifyAccess = require('../middleware/verification_black_box');
 const User = require('../models/user');
+const { isValidPassword } = require('../utils/passwordValidator');
 
 // Create user
 router.post('/create', verifyAccess('create:user'), async (req, res) => {
     try {
         const { username, password, email, name, enabled, roles, secured } = req.body;
+        if (!isValidPassword(password)) {
+            return res.status(400).json({ message: 'Password should contain atleast one uppercase, one lowercase, one number and one special characters and a minimum length of 8.' });
+        }
         const newUser = new User({ username, password, email, name, enabled, roles, secured });
         await newUser.save();
         res.status(201).json({ message: 'User created successfully', user: newUser });
