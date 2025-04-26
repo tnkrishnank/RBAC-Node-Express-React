@@ -4,6 +4,7 @@ const verifyAccess = require('../middleware/verification_black_box');
 const User = require('../models/user');
 const Role = require('../models/role');
 const jwt = require('jsonwebtoken');
+const { sendVerificationEmail } = require('../utils/mailer');
 
 // Method to generate JWT token
 const generateToken = (userId) => {
@@ -23,17 +24,53 @@ router.post('/register', async (req, res) => {
         if (existingUser) {
             return res.status(400).json({ message: 'Username or email already exists' });
         }
+        // Create email verification link
+        const signupData = { username, password, name, email };
+        const token = jwt.sign(signupData, process.env.EMAIL_VERIFICATION_SECRET, { expiresIn: '10m' });
+        const verificationLink = `${process.env.BASE_URL}/api/authentication/verify-email?token=${token}`;
+        // Send email
+        try {
+            await sendVerificationEmail(email, verificationLink);
+            res.status(200).json({ message: 'Verification email sent! Please check your inbox.' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Failed to send verification email' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Verify email
+router.get('/verify-email', async (req, res) => {
+    const { token } = req.query;
+    if (!token) {
+        return res.status(400).send('Invalid or missing token');
+    }
+    try {
+        const decoded = jwt.verify(token, process.env.EMAIL_VERIFICATION_SECRET);
+        // Check if email already exists
+        const existingUser = await User.findOne({ email: decoded.email });
+        if (existingUser) {
+            return res.status(400).send('Email already verified');
+        }
         // Create a new user
         const defaultRole = await Role.findOne({ role: 'user' });
         if (!defaultRole) {
             return res.status(500).json({ message: 'Default role not found' });
         }
-        const newUser = new User({ username, password, name, email, roles: roles || [defaultRole._id] });
+        const newUser = new User({
+            username: decoded.username,
+            password: decoded.password,
+            name: decoded.name,
+            email: decoded.email,
+            roles: [defaultRole._id]
+        });
         await newUser.save();
-        res.status(201).json({ message: 'User registered successfully' });
+        res.status(201).json({ message: 'Your email is verified and User registered successfully' });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(400).send('Token expired or invalid');
     }
 });
 

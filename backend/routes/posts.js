@@ -6,8 +6,9 @@ const Post = require('../models/post');
 // Create post
 router.post('/create', verifyAccess('create:post'), async (req, res) => {
     try {
-        const { title, content, author, enabled } = req.body;
-        const newPost = new Post({ title, content, author, enabled });
+        const { title, content, enabled } = req.body;
+        const user = req.user;
+        const newPost = new Post({ title, content, author: user._id, enabled });
         await newPost.save();
         res.status(201).json({ message: 'Post created successfully', post: newPost });
     } catch (error) {
@@ -31,8 +32,9 @@ router.get('/:id', verifyAccess('read:post'), async (req, res) => {
 // Update post
 router.put('/:id', verifyAccess('update:post'), async (req, res) => {
     try {
-        const { title, content, author, enabled } = req.body;
-        const updatedPost = await Post.findByIdAndUpdate(req.params.id, { title, content, author, enabled, last_updated: new Date() }, { new: true });
+        const { title, content, enabled } = req.body;
+        const user = req.user;
+        const updatedPost = await Post.findByIdAndUpdate(req.params.id, { title, content, author: user._id, enabled, last_updated: new Date() }, { new: true });
         if (!updatedPost) {
             return res.status(404).json({ message: 'Post not found' });
         }

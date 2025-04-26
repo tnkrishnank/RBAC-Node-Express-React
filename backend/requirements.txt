@@ -2,3 +2,7 @@ node -v
 npm -v
 npm init -y
 npm install express jsonwebtoken bcryptjs mongoose dotenv
+npm install nodemailer
+
+Generate Secret
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
