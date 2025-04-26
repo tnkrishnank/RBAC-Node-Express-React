@@ -1,4 +1,4 @@
 npx create-react-app .
-npm install axios react-router-dom
+npm install axios react-router-dom@6
 npm audit fix --force
-npm install react-router-dom@6
+npm start
