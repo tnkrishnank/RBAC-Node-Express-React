@@ -11,6 +11,9 @@ const app = express();
 // Middleware to parse JSON data from request bodies
 app.use(express.json());
 
+const cors = require('cors');
+app.use(cors());
+
 // Connect to the database
 connectDB();
 

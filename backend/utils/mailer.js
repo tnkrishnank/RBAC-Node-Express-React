@@ -16,7 +16,7 @@ const sendVerificationEmail = async (email, verificationLink) => {
         html: `
             <h2>Welcome!</h2>
             <p>Click below to verify your email:</p>
-            <a href="${verificationLink}">Verify Email</a>
+            <a href="${verificationLink}">${verificationLink}</a>
             <p>This link will expire in 10 minutes.</p>
         `,
     };
