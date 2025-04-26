@@ -101,6 +101,71 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// Admin login
+router.post('/admin-login', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        // Find the user by username
+        const user = await User.findOne({ username }).populate({
+            path: 'roles',
+            match: { enabled: true }
+        });
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
+        // Check if user has admin role
+        const hasRole = user.roles.some(role => role.role === "admin");
+        if (!hasRole) {
+            return res.status(403).json({ message: 'You are not authorized to log in as an admin' });
+        }
+        // Compare the entered password with the stored password hash
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
+        // Update login date
+        user.login_dt = new Date();
+        await user.save();
+        // Generate a JWT token for the user
+        const token = generateToken(user._id);
+        // Send the token in response
+        res.status(200).json({ message: 'Login successful', token });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Verify admin
+router.post('/verify-admin', async (req, res) => {
+    // Check if Bearer token is available
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'Authorization header missing or malformed' });
+    }
+    const token = authHeader.split(' ')[1];
+    try {
+        // Verify the token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.id).select('-password').populate({
+            path: 'roles',
+            match: { enabled: true }
+        });
+        if (!user || !user.enabled) {
+            return res.status(403).json({ message: 'User not authorized' });
+        }
+        // Check if user has admin role
+        const hasRole = user.roles.some(role => role.role === "admin");
+        if (!hasRole) {
+            return res.status(403).json({ message: 'You are not authorized to log in as an admin' });
+        }
+        res.status(200).json({ message: 'Admin verification successful', token });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 // Get user details
 router.get('/me', verifyAccess('readme:user'), async (req, res) => {
     try {
