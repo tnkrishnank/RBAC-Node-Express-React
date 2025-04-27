@@ -1,6 +1,6 @@
 # RBAC-Node-Express-React
 
-# 🖥️ Blog App (Admin + User Portal)
+## 🖥️ Blog App (Admin + User Portal)
 
 A full-stack blogging application with authentication, admin portal, email verification for new users, and more.
 
@@ -72,4 +72,4 @@ npm start
 
 ---
 
-# 🎯 That's it — a simple full-stack Blog App is ready!
+## 🎯 That's it — a simple full-stack Blog App is ready!
